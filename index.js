@@ -1,5 +1,6 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const  jwt = require('jsonwebtoken');
 const app = express()
 require("dotenv").config()
 const port = process.env.PORT || 5000
@@ -31,6 +32,7 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const usersCollection = client.db('summerCamp').collection('users');
+    const classesCollection = client.db('summerCamp').collection('classes');
 
 
 
@@ -74,6 +76,31 @@ async function run() {
         const result = await usersCollection.updateOne(filter,updateDoc)
         res.send(result)
     })
+
+    //classes
+    app.get('/classes', async(req,res) =>{
+        const result = await classesCollection.find().toArray()
+        res.send(result)
+    })
+    app.post('/classes',async(req,res) =>{
+        const singleClass = req.body;
+        const result = await classesCollection.insertOne(singleClass)
+        res.send(result)
+    })
+    app.patch('/classes/:id',async(req,res) =>{
+        const id =req.params.id;
+        const filter={_id:new ObjectId(id)}
+        const updateRole = req.body;
+        console.log(updateRole)
+        const updateDoc = {
+            $set:{
+                role: updateRole.role,
+            }
+        }
+        const result = await classesCollection.updateOne(filter,updateDoc)
+        res.send(result)
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
