@@ -1,5 +1,5 @@
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 require("dotenv").config()
 const port = process.env.PORT || 5000
@@ -33,6 +33,13 @@ async function run() {
     const usersCollection = client.db('summerCamp').collection('users');
 
 
+
+    //users related apis
+    app.get('/users', async(req,res) =>{
+        const result = await usersCollection.find().toArray();
+        res.send(result)
+      })
+  
     app.post('/users',async(req,res) =>{
         const user = req.body;
         console.log(user)
@@ -46,6 +53,27 @@ async function run() {
         const result = await usersCollection.insertOne(user)
         res.send(result)
       })
+
+      app.get('/users/:id', async(req,res) =>{
+        const id =req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await usersCollection.findOne(query)
+        res.send(result)
+    })
+   
+      app.patch('/users/:id',async(req,res) =>{
+        const id =req.params.id;
+        const filter={_id:new ObjectId(id)}
+        const updateRole = req.body;
+        console.log(updateRole)
+        const updateDoc = {
+            $set:{
+                role: updateRole.role,
+            }
+        }
+        const result = await usersCollection.updateOne(filter,updateDoc)
+        res.send(result)
+    })
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
